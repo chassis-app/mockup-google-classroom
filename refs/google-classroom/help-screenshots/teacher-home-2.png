@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" jetway-hooks="{}">
+    <title>ic_keyboard_arrow_right_grey600_18dp</title>
+    <g jetway-hook-id="709BB590-4654-4B36-9EFC-1C7D90B8A6A3" id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g jetway-hook-id="7C9CA3D1-623C-4ADE-84E3-A4F9C7E36264" id="ic_keyboard_arrow_right_grey600_18dp">
+            <polygon jetway-hook-id="7BD9DD6F-6295-4691-B91E-9EC4E04CD367" id="Path" points="0 0 24 0 24 24 0 24"></polygon>
+            <polyline jetway-hook-id="F1EAB2F5-11AF-4F1B-B452-15CF3F4C76D3" id="Path" fill="#80868B" fill-rule="nonzero" points="7.59 18.59 9 20 17 12 9 4 7.59 5.41 14.17 12"></polyline>
+        </g>
+    </g>
+</svg>

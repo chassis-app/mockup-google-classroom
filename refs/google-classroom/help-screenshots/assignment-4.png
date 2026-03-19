@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" jetway-hooks="{}">
+    <title>ic_video_youtube_grey600_24dp</title>
+    <g jetway-hook-id="897BB45D-6C62-46E2-A7E7-7A68A9F12E15" id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g jetway-hook-id="F8CE44EA-03D6-4547-AEAF-6A1BDB51ECEC" id="ic_video_youtube_grey600_24dp">
+            <polygon jetway-hook-id="71B38225-D985-43B9-BAFA-91A2D5235F60" id="Path" points="0 0 24 0 24 24 0 24"></polygon>
+            <path d="M21.58,7.19 C21.35,6.33 20.67,5.65 19.81,5.42 C18.25,5 12,5 12,5 C12,5 5.75,5 4.19,5.42 C3.33,5.65 2.65,6.33 2.42,7.19 C2,8.75 2,12 2,12 C2,12 2,15.25 2.42,16.81 C2.65,17.67 3.33,18.35 4.19,18.58 C5.75,19 12,19 12,19 C12,19 18.25,19 19.81,18.58 C20.67,18.35 21.35,17.67 21.58,16.81 C22,15.25 22,12 22,12 C22,12 22,8.75 21.58,7.19 Z M10,15 L10,9 L15.2,12 L10,15 Z" jetway-hook-id="EFEEDAF9-A78F-45B7-8A38-011631775AA4" id="Shape" fill="#80868B" fill-rule="nonzero"></path>
+        </g>
+    </g>
+</svg>
