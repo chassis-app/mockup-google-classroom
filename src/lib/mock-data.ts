@@ -12,12 +12,14 @@ export type Classroom = {
   section: string;
   subject: string;
   room: string;
+  teacher: string;
   hero: string;
   theme: string;
   classCode: string;
   meetLink: string;
   roster: number;
   completion: number;
+  upcoming: string;
 };
 
 export type Announcement = {
@@ -27,16 +29,21 @@ export type Announcement = {
   title: string;
   body: string;
   tag: string;
+  commentCount: number;
 };
 
 export type WorkItem = {
   id: string;
-  type: "Assignment" | "Quiz" | "Question" | "Material";
+  type: "Assignment" | "Quiz assignment" | "Question" | "Material";
   title: string;
+  description: string;
   topic: string;
   due: string;
   points?: number;
   status: "Published" | "Scheduled" | "Draft";
+  assigned: number;
+  turnedIn: number;
+  rubric?: string;
 };
 
 export type Person = {
@@ -65,29 +72,33 @@ export type ReferenceImage = {
 export const classes: Classroom[] = [
   {
     id: "biology-240",
-    name: "Biology of Change",
+    name: "Biology 240",
     section: "Period 2",
     subject: "Life Science",
     room: "Lab 204",
-    hero: "Signals, systems, and student momentum.",
-    theme: "from-[#1f8f76] via-[#2b6f9a] to-[#f5b84f]",
+    teacher: "Amina Rivera",
+    hero: "Weekly lab reflections, cell signaling tasks, and quick support check-ins.",
+    theme: "from-[#2f6f5e] via-[#3b7e6e] to-[#5f8d7a]",
     classCode: "XQ7-PLANT",
     meetLink: "meet.google.com/mock-bio-240",
     roster: 28,
     completion: 92,
+    upcoming: "Storyboard due tomorrow",
   },
   {
     id: "history-studio",
-    name: "World History Studio",
+    name: "World History Seminar",
     section: "Advisory",
     subject: "Humanities",
     room: "Room 118",
-    hero: "Context-first learning with rich source packs.",
-    theme: "from-[#7d4a2f] via-[#c46b3d] to-[#f3d6a4]",
+    teacher: "Marcus Lee",
+    hero: "Source packets, discussion questions, and rubric-based seminars.",
+    theme: "from-[#6a4d8d] via-[#7c5ca4] to-[#9070b8]",
     classCode: "ARCHIVE-9",
-    meetLink: "meet.google.com/mock-his-118",
+    meetLink: "meet.google.com/mock-history-118",
     roster: 34,
     completion: 88,
+    upcoming: "Primary source notes due Friday",
   },
   {
     id: "algebra-lab",
@@ -95,12 +106,14 @@ export const classes: Classroom[] = [
     section: "Period 5",
     subject: "Mathematics",
     room: "Room 306",
-    hero: "Practice loops, instant feedback, confident mastery.",
-    theme: "from-[#2f4f6f] via-[#305fb0] to-[#8dd4ff]",
+    teacher: "Nora Patel",
+    hero: "Practice sets, worked examples, and intervention checkpoints.",
+    theme: "from-[#355c99] via-[#4b73b1] to-[#6488c6]",
     classCode: "PARABOLA",
     meetLink: "meet.google.com/mock-math-306",
     roster: 31,
     completion: 84,
+    upcoming: "Checkpoint quiz this afternoon",
   },
 ];
 
@@ -113,6 +126,7 @@ export const announcements: Announcement[] = [
     body:
       "Use the new annotation template before tomorrow's lab. I added exemplars and a five-minute walkthrough.",
     tag: "Stream",
+    commentCount: 2,
   },
   {
     id: "a2",
@@ -120,8 +134,9 @@ export const announcements: Announcement[] = [
     time: "Yesterday, 4:25 PM",
     title: "Meet link opens 10 minutes early",
     body:
-      "Students who need extra help can join the room before class. I'll review the genetics quiz retake window there.",
+      "Students who need extra help can join before class. I will review the quiz retake window there.",
     tag: "Meet",
+    commentCount: 0,
   },
   {
     id: "a3",
@@ -131,6 +146,7 @@ export const announcements: Announcement[] = [
     body:
       "Added a high-contrast reading version and an audio summary to support independent review.",
     tag: "Material",
+    commentCount: 3,
   },
 ];
 
@@ -139,45 +155,62 @@ export const workItems: WorkItem[] = [
     id: "w1",
     type: "Assignment",
     title: "Cell signaling storyboard",
-    topic: "Unit 4 - Communication",
+    description:
+      "Create a short visual explanation showing how the signal moves, amplifies, and changes the cell response.",
+    topic: "Unit 4",
     due: "Mar 20, 11:59 PM",
-    points: 20,
+    points: 100,
     status: "Published",
+    assigned: 28,
+    turnedIn: 21,
+    rubric: "Signal pathway · Scientific vocabulary",
   },
   {
     id: "w2",
-    type: "Quiz",
+    type: "Quiz assignment",
     title: "Genetics checkpoint",
-    topic: "Unit 4 - Communication",
+    description: "Submit the quiz before advisory. Scores return after teacher review.",
+    topic: "Unit 4",
     due: "Mar 21, 9:15 AM",
-    points: 15,
+    points: 20,
     status: "Published",
+    assigned: 28,
+    turnedIn: 26,
   },
   {
     id: "w3",
     type: "Question",
     title: "What causes a signal to amplify?",
+    description: "Respond before discussion. One strong paragraph is enough.",
     topic: "Seminar prep",
     due: "Mar 22, 8:00 AM",
     points: 5,
     status: "Scheduled",
+    assigned: 28,
+    turnedIn: 0,
   },
   {
     id: "w4",
     type: "Material",
     title: "Microscopy reference board",
-    topic: "Toolkit",
+    description: "Always-on support material for lab setup and vocabulary review.",
+    topic: "Resources",
     due: "Always available",
     status: "Published",
+    assigned: 28,
+    turnedIn: 0,
   },
   {
     id: "w5",
     type: "Assignment",
-    title: "Client-requested extension: learning pathway rules",
+    title: "Learning pathway check-in",
+    description: "Client extension surface for differentiated follow-up work and pacing prompts.",
     topic: "Prototype extras",
     due: "Drafting",
     points: 12,
     status: "Draft",
+    assigned: 12,
+    turnedIn: 0,
   },
 ];
 
@@ -187,7 +220,7 @@ export const people: Person[] = [
     name: "Amina Rivera",
     role: "Primary teacher",
     email: "amina@northfield.edu",
-    streak: "Replies within 2h",
+    streak: "Replies within 2 hours",
   },
   {
     id: "p2",
@@ -249,7 +282,7 @@ export const referenceImages: ReferenceImage[] = [
   },
   {
     title: "Workspace tool ecosystem",
-    note: "Good reminder that Classroom feels connected to Meet, Drive, Docs, and Calendar.",
+    note: "Reinforces that Classroom feels tied to Meet, Drive, Docs, and Calendar.",
     path: "/references/12-workspace-tools.png",
     source: "Google for Education product page",
   },

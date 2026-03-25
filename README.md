@@ -9,6 +9,9 @@ Frontend-only Google Classroom-inspired mockup for exploring client-requested UI
 - local mock data only; no backend
 - official Google Classroom reference screenshots in `refs/google-classroom/`
 - research notes in `docs/google-classroom-study.md`
+- enhanced feature synthesis in `docs/google-classroom-enhanced-feature-list.md`
+- styling alignment plan in `docs/google-classroom-styling-plan.md`
+- full revamp plan in `docs/google-classroom-revamp-plan.md`
 
 ## Run locally
 
@@ -31,4 +34,7 @@ npm run build
 - `src/components/classroom-mock.tsx`
 - `src/lib/mock-data.ts`
 - `docs/google-classroom-study.md`
+- `docs/google-classroom-enhanced-feature-list.md`
+- `docs/google-classroom-styling-plan.md`
+- `docs/google-classroom-revamp-plan.md`
 - `refs/google-classroom/README.md`

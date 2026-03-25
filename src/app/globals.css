@@ -1,16 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f4ec;
-  --foreground: #17344d;
-  --color-paper: #f7f4ec;
-  --color-panel: #fcfaf4;
-  --color-mist: #e8eef2;
-  --color-border: rgba(23, 52, 77, 0.12);
-  --color-border-strong: rgba(23, 52, 77, 0.2);
-  --color-ink: #17344d;
-  --color-ink-soft: #5f7180;
-  --color-highlight: #f5b84f;
+  --background: #f6f8fc;
+  --foreground: #202124;
+  --color-page: #f6f8fc;
+  --color-sidebar: #f8f9fa;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f8f9fa;
+  --color-border: #dadce0;
+  --color-border-strong: #c3c7cf;
+  --color-text: #202124;
+  --color-text-soft: #5f6368;
+  --color-blue: #1a73e8;
+  --color-blue-soft: #e8f0fe;
+  --color-purple: #7e57c2;
+  --color-green: #188038;
+  --color-green-soft: #e6f4ea;
 }
 
 @theme inline {
@@ -44,12 +49,12 @@ button {
 }
 
 .font-heading {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-body), sans-serif;
 }
 
 ::selection {
-  background: rgba(245, 184, 79, 0.38);
-  color: var(--color-ink);
+  background: rgba(26, 115, 232, 0.18);
+  color: var(--color-text);
 }
 
 @media (prefers-reduced-motion: reduce) {

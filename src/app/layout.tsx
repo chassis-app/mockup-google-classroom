@@ -1,22 +1,16 @@
 import type { Metadata } from "next";
-import { Atkinson_Hyperlegible, Crimson_Pro } from "next/font/google";
+import { Roboto } from "next/font/google";
 import "./globals.css";
 
-const bodyFont = Atkinson_Hyperlegible({
+const bodyFont = Roboto({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["400", "700"],
-});
-
-const headingFont = Crimson_Pro({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "Classroom Atelier",
-  description: "Frontend-only Google Classroom-inspired mockup with client extension surfaces.",
+  title: "Google Classroom Mockup Revamp",
+  description: "Frontend-only Google Classroom-style mockup with higher-fidelity workflows and client extensions.",
 };
 
 export default function RootLayout({
@@ -25,10 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${bodyFont.variable} ${headingFont.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${bodyFont.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
