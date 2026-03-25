@@ -3,15 +3,19 @@ import Link from "next/link";
 import {
   Archive,
   ArrowRight,
+  ArrowLeft,
   BookOpen,
   CalendarDays,
   ChevronDown,
   CircleDot,
+  ClipboardList,
   Copy,
   Ellipsis,
+  FileText,
   FolderKanban,
   GraduationCap,
   Home,
+  Link2,
   Menu,
   MonitorPlay,
   NotebookTabs,
@@ -19,12 +23,18 @@ import {
   Search,
   Settings,
   Sparkles,
+  Speech,
+  Upload,
   Users,
+  Video,
 } from "lucide-react";
 import {
   announcements,
+  assignmentDraft,
   classes,
   getClassroom,
+  getSubmissionRecords,
+  getWorkItem,
   gradeRows,
   people,
   referenceImages,
@@ -33,6 +43,7 @@ import {
   type Announcement,
   type ClassTab,
   type Classroom,
+  type SubmissionRecord,
   type WorkItem,
 } from "@/lib/mock-data";
 
@@ -198,17 +209,523 @@ export function ClassPage({ classId, activeTab }: ClassPageProps) {
   const classroom = getClassroom(classId);
 
   return (
-    <AppFrame currentHref={`/class/${classroom.id}/${activeTab}`}>
+    <ClassScaffold classroom={classroom} activeTab={activeTab} currentHref={`/class/${classroom.id}/${activeTab}`}>
+      {activeTab === "stream" && <StreamTab classroom={classroom} />}
+      {activeTab === "classwork" && <ClassworkTab classroom={classroom} />}
+      {activeTab === "people" && <PeopleTab />}
+      {activeTab === "grades" && <GradesTab />}
+      {activeTab === "your-work" && <YourWorkTab classroom={classroom} />}
+      {activeTab === "insights" && <InsightsTab />}
+    </ClassScaffold>
+  );
+}
+
+export function AssignmentComposerPage({ classId }: { classId: string }) {
+  const classroom = getClassroom(classId);
+
+  return (
+    <ClassScaffold
+      classroom={classroom}
+      activeTab="classwork"
+      currentHref={`/class/${classroom.id}/classwork/new-assignment`}
+    >
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href={`/class/${classroom.id}/classwork`}
+            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-blue)]"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to classwork
+          </Link>
+          <div className="flex flex-wrap gap-2">
+            <ActionButton label="Save draft" subtle />
+            <ActionButton label="Assign" />
+          </div>
+        </div>
+
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <Card className="p-5">
+            <div className="flex items-center gap-2 text-sm font-medium text-[var(--color-text)]">
+              <ClipboardList className="h-4 w-4 text-[var(--color-purple)]" />
+              Assignment
+            </div>
+
+            <div className="mt-5 space-y-4">
+              <div className="rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface-subtle)] px-4 py-4">
+                <p className="text-xs font-medium uppercase tracking-[0.08em] text-[var(--color-text-soft)]">Title</p>
+                <p className="mt-2 text-lg text-[var(--color-text)]">{assignmentDraft.title}</p>
+              </div>
+
+              <div className="rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface-subtle)] px-4 py-4">
+                <p className="text-xs font-medium uppercase tracking-[0.08em] text-[var(--color-text-soft)]">
+                  Instructions
+                </p>
+                <p className="mt-2 text-sm leading-7 text-[var(--color-text-soft)]">
+                  {assignmentDraft.instructions}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-3 text-[var(--color-text-soft)]">
+                  <ComposerTool label="Bold" />
+                  <ComposerTool label="Italic" />
+                  <ComposerTool label="Underline" />
+                  <ComposerTool label="Bullets" />
+                </div>
+              </div>
+
+              <div className="rounded-[10px] border border-[var(--color-border)] px-4 py-4">
+                <p className="text-sm font-medium text-[var(--color-text)]">Attach</p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
+                  {assignmentDraft.attachments.map((label) => (
+                    <AttachmentOption key={label} label={label} />
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-[10px] border border-[var(--color-border)] px-4 py-4">
+                <p className="text-sm font-medium text-[var(--color-text)]">Rubric preview</p>
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  <RubricCriterionCard
+                    title="Signal pathway"
+                    body="Explains how the signal starts, moves, and changes the cell response."
+                  />
+                  <RubricCriterionCard
+                    title="Scientific vocabulary"
+                    body="Uses correct terms for receptors, amplification, and response."
+                  />
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <div className="space-y-4">
+            <Card className="p-5">
+              <p className="text-sm font-medium text-[var(--color-text)]">Assignment settings</p>
+              <div className="mt-4 space-y-3">
+                <ComposerField label="For" value={assignmentDraft.forClass} />
+                <ComposerField label="Assigned to" value={assignmentDraft.assignedTo} />
+                <ComposerField label="Points" value={`${assignmentDraft.points}`} />
+                <ComposerField label="Due" value={assignmentDraft.due} />
+                <ComposerField label="Topic" value={assignmentDraft.topic} />
+                <ComposerField label="Rubric" value={assignmentDraft.rubric} />
+              </div>
+            </Card>
+
+            <Card className="p-5">
+              <p className="text-sm font-medium text-[var(--color-text)]">Submission rules</p>
+              <div className="mt-4 space-y-4 text-sm text-[var(--color-text-soft)]">
+                <CheckboxRow
+                  label="Check originality reports"
+                  checked={assignmentDraft.originalityReports}
+                />
+                <CheckboxRow
+                  label="Close submissions after due date"
+                  checked={assignmentDraft.closeSubmissions}
+                />
+              </div>
+            </Card>
+
+            <Card className="p-5">
+              <p className="text-sm font-medium text-[var(--color-text)]">What this adds</p>
+              <p className="mt-3 text-sm leading-6 text-[var(--color-text-soft)]">
+                This page turns the classwork tab into a real teacher authoring workflow instead of a visual placeholder.
+                It aligns to the Classroom screenshots with title, instructions, attachments, due settings, rubric, and
+                submission policy controls.
+              </p>
+            </Card>
+          </div>
+        </section>
+      </section>
+    </ClassScaffold>
+  );
+}
+
+export function AssignmentDetailPage({
+  classId,
+  workId,
+}: {
+  classId: string;
+  workId: string;
+}) {
+  const classroom = getClassroom(classId);
+  const item = getWorkItem(workId);
+  const submissions = getSubmissionRecords(workId);
+
+  return (
+    <ClassScaffold
+      classroom={classroom}
+      activeTab="classwork"
+      currentHref={`/class/${classroom.id}/classwork/${workId}`}
+    >
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href={`/class/${classroom.id}/classwork`}
+            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-blue)]"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to classwork
+          </Link>
+          <div className="flex flex-wrap gap-2">
+            <ActionButton label="Edit assignment" subtle />
+            <Link
+              href={`/class/${classroom.id}/classwork/${workId}/review`}
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--color-blue)] px-4 py-2 text-sm font-medium text-white"
+            >
+              Open submissions
+            </Link>
+          </div>
+        </div>
+
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="space-y-4">
+            <Card className="p-5">
+              <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--color-border)] pb-4">
+                <div>
+                  <p className="text-sm text-[var(--color-text-soft)]">{item.type}</p>
+                  <h2 className="mt-1 text-[32px] font-medium tracking-[-0.02em] text-[var(--color-text)]">
+                    {item.title}
+                  </h2>
+                  <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--color-text-soft)]">
+                    {item.description}
+                  </p>
+                </div>
+                <StatusBadge status={item.status} />
+              </div>
+
+              <div className="mt-5 grid gap-4 md:grid-cols-3">
+                <SummaryCard label="Assigned" value={`${item.assigned}`} note="Students selected for this work." />
+                <SummaryCard label="Turned in" value={`${item.turnedIn}`} note="Ready for review or return." />
+                <SummaryCard
+                  label="Rubric"
+                  value={item.rubric ?? "No rubric"}
+                  note="Visible in grading and student work."
+                />
+              </div>
+
+              {item.attachments?.length ? (
+                <div className="mt-5">
+                  <p className="text-sm font-medium text-[var(--color-text)]">Attachments</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {item.attachments.map((attachment) => (
+                      <AttachmentPill key={attachment} label={attachment} />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </Card>
+
+            <Card className="p-5">
+              <p className="text-sm font-medium text-[var(--color-text)]">Rubric criteria</p>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <RubricCriterionCard
+                  title="Signal pathway"
+                  body="Shows how the receptor triggers the signal and how the cell response changes."
+                />
+                <RubricCriterionCard
+                  title="Scientific vocabulary"
+                  body="Uses accurate terms and connects them to the diagram or explanation."
+                />
+              </div>
+            </Card>
+
+            <Card className="p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm font-medium text-[var(--color-text)]">Student work</p>
+                <span className="text-sm text-[var(--color-text-soft)]">Recent submissions</span>
+              </div>
+              <div className="mt-4 space-y-3">
+                {submissions.map((submission) => (
+                  <SubmissionRow key={submission.id} submission={submission} />
+                ))}
+              </div>
+            </Card>
+          </div>
+
+          <div className="space-y-4">
+            <Card className="p-5">
+              <p className="text-sm font-medium text-[var(--color-text)]">Assignment details</p>
+              <div className="mt-4 space-y-3">
+                <ComposerField label="Topic" value={item.topic} />
+                <ComposerField label="Due" value={item.due} />
+                <ComposerField label="Points" value={item.points ? `${item.points}` : "Ungraded"} />
+                <ComposerField label="Posted" value={item.postedAt ?? "Recently posted"} />
+              </div>
+            </Card>
+
+            <Card className="p-5">
+              <p className="text-sm font-medium text-[var(--color-text)]">Teacher flow</p>
+              <p className="mt-3 text-sm leading-6 text-[var(--color-text-soft)]">
+                This page gives the teacher a believable midpoint between classwork and grading: assignment context,
+                rubric, attachment set, and a quick view of who is turned in, returned, or missing.
+              </p>
+            </Card>
+          </div>
+        </section>
+      </section>
+    </ClassScaffold>
+  );
+}
+
+export function SubmissionReviewPage({
+  classId,
+  workId,
+}: {
+  classId: string;
+  workId: string;
+}) {
+  const classroom = getClassroom(classId);
+  const item = getWorkItem(workId);
+  const submissions = getSubmissionRecords(workId);
+  const selectedSubmission = submissions[0];
+
+  return (
+    <ClassScaffold
+      classroom={classroom}
+      activeTab="classwork"
+      currentHref={`/class/${classroom.id}/classwork/${workId}/review`}
+    >
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href={`/class/${classroom.id}/classwork/${workId}`}
+            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-blue)]"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to assignment
+          </Link>
+          <div className="flex flex-wrap gap-2">
+            <ActionButton label="Return" />
+            <ActionButton label="Email student" subtle />
+          </div>
+        </div>
+
+        <section className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+          <Card className="p-0">
+            <div className="border-b border-[var(--color-border)] px-5 py-4">
+              <p className="text-sm font-medium text-[var(--color-text)]">Student work</p>
+              <p className="mt-1 text-sm text-[var(--color-text-soft)]">{item.title}</p>
+            </div>
+            <div className="space-y-2 p-4">
+              {submissions.map((submission) => (
+                <Link
+                  key={submission.id}
+                  href={`/class/${classroom.id}/classwork/${workId}/review`}
+                  className={`block rounded-[10px] border px-4 py-4 ${
+                    submission.id === selectedSubmission?.id
+                      ? "border-[var(--color-blue)] bg-[var(--color-blue-soft)]"
+                      : "border-[var(--color-border)] bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium text-[var(--color-text)]">{submission.student}</p>
+                    <SubmissionStatus status={submission.status} />
+                  </div>
+                  <p className="mt-2 text-xs text-[var(--color-text-soft)]">{submission.submittedAt}</p>
+                  {submission.grade ? (
+                    <p className="mt-2 text-sm font-medium text-[var(--color-text)]">{submission.grade}</p>
+                  ) : null}
+                </Link>
+              ))}
+            </div>
+          </Card>
+
+          <div className="space-y-4">
+            <Card className="p-5">
+              <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--color-border)] pb-4">
+                <div>
+                  <p className="text-sm text-[var(--color-text-soft)]">{selectedSubmission.student}</p>
+                  <h2 className="mt-1 text-[32px] font-medium tracking-[-0.02em] text-[var(--color-text)]">
+                    {item.title}
+                  </h2>
+                  <p className="mt-2 text-sm text-[var(--color-text-soft)]">
+                    Turned in · {selectedSubmission.submittedAt}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-medium text-[var(--color-text)]">{selectedSubmission.grade ?? "Ungraded"}</p>
+                  <p className="text-sm text-[var(--color-text-soft)]">{item.points} points</p>
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+                <div className="space-y-4">
+                  <div className="rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface-subtle)] px-4 py-5">
+                    <p className="text-sm font-medium text-[var(--color-text)]">Submitted work</p>
+                    <p className="mt-3 text-sm text-[var(--color-text-soft)]">
+                      {selectedSubmission.attachment ?? "Student attachment not uploaded yet."}
+                    </p>
+                  </div>
+
+                  <div className="rounded-[10px] border border-[var(--color-border)] px-4 py-4">
+                    <p className="text-sm font-medium text-[var(--color-text)]">Private comments</p>
+                    <div className="mt-4 space-y-3 text-sm text-[var(--color-text-soft)]">
+                      <CommentBubble author={selectedSubmission.student} body={selectedSubmission.note} />
+                      <CommentBubble
+                        author={classroom.teacher}
+                        body="Strong explanation overall. Tighten the connection between the receptor and the final response."
+                        teacher
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <Card className="p-4">
+                    <p className="text-sm font-medium text-[var(--color-text)]">Rubric scoring</p>
+                    <div className="mt-4 space-y-3">
+                      <ScoreRow label="Signal pathway" value="46 / 50" />
+                      <ScoreRow label="Scientific vocabulary" value="50 / 50" />
+                    </div>
+                  </Card>
+
+                  <Card className="p-4">
+                    <p className="text-sm font-medium text-[var(--color-text)]">Teacher actions</p>
+                    <div className="mt-4 space-y-2">
+                      <ActionButton label="Return work" />
+                      <ActionButton label="Save draft score" subtle />
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </section>
+      </section>
+    </ClassScaffold>
+  );
+}
+
+export function StudentAssignmentPage({
+  classId,
+  workId,
+}: {
+  classId: string;
+  workId: string;
+}) {
+  const classroom = getClassroom(classId);
+  const item = getWorkItem(workId);
+
+  return (
+    <ClassScaffold
+      classroom={classroom}
+      activeTab="your-work"
+      currentHref={`/class/${classroom.id}/your-work/${workId}`}
+    >
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href={`/class/${classroom.id}/your-work`}
+            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-blue)]"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to your work
+          </Link>
+          <div className="flex flex-wrap gap-2">
+            <ActionButton label="Mark as done" subtle />
+            <ActionButton label="Turn in" />
+          </div>
+        </div>
+
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <Card className="p-5">
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] pb-4">
+              <div>
+                <p className="text-sm text-[var(--color-text-soft)]">{classroom.teacher} · {item.postedAt}</p>
+                <h2 className="mt-1 text-[32px] font-medium tracking-[-0.02em] text-[var(--color-text)]">
+                  {item.title}
+                </h2>
+                <p className="mt-3 text-sm leading-7 text-[var(--color-text-soft)]">{item.description}</p>
+              </div>
+              <div className="text-right text-sm text-[var(--color-text-soft)]">
+                <p>{item.points} points</p>
+                <p>{item.due}</p>
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              {item.rubric?.split(" · ").map((criterion) => (
+                <div key={criterion} className="rounded-[10px] border border-[var(--color-border)] px-4 py-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-medium text-[var(--color-text)]">{criterion}</span>
+                    <span className="text-sm text-[var(--color-text-soft)]">/50</span>
+                  </div>
+                  <p className="mt-2 text-sm text-[var(--color-text-soft)]">
+                    Review this criterion before you upload so your explanation stays aligned with the rubric.
+                  </p>
+                </div>
+              ))}
+
+              <div className="rounded-[10px] border border-[var(--color-border)] px-4 py-4">
+                <p className="text-sm font-medium text-[var(--color-text)]">Class comments</p>
+                <div className="mt-4 space-y-3">
+                  <CommentBubble
+                    author="Sofia Carter"
+                    body="Can we use the annotation template from yesterday's lab?"
+                  />
+                  <CommentBubble
+                    author={classroom.teacher}
+                    body="Yes. You can attach the template and record your explanation over it."
+                    teacher
+                  />
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <div className="space-y-4">
+            <Card className="p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium text-[var(--color-text)]">Your work</p>
+                <span className="text-xs font-medium text-[var(--color-blue)]">Assigned</span>
+              </div>
+              <div className="mt-4 space-y-3">
+                <div className="rounded-[8px] border border-[var(--color-border)] bg-[var(--color-surface-subtle)] px-3 py-3 text-sm text-[var(--color-text)]">
+                  Storyboard video.mp4
+                </div>
+                <button type="button" className="w-full rounded-[8px] border border-[var(--color-border)] px-3 py-2 text-sm text-[var(--color-text)]">
+                  Add or create
+                </button>
+                <button type="button" className="w-full rounded-[8px] bg-[var(--color-text)] px-3 py-2 text-sm font-medium text-white">
+                  Turn in
+                </button>
+              </div>
+            </Card>
+
+            <Card className="p-4">
+              <p className="text-sm font-medium text-[var(--color-text)]">Private comments</p>
+              <div className="mt-4 space-y-3">
+                <CommentBubble author="Sofia Carter" body="I updated the amplification section." />
+                <CommentBubble
+                  author={classroom.teacher}
+                  body="Looks stronger. Make sure the last frame explains the final cell response clearly."
+                  teacher
+                />
+              </div>
+            </Card>
+          </div>
+        </section>
+      </section>
+    </ClassScaffold>
+  );
+}
+
+function ClassScaffold({
+  classroom,
+  activeTab,
+  currentHref,
+  children,
+}: {
+  classroom: Classroom;
+  activeTab: ClassTab;
+  currentHref: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <AppFrame currentHref={currentHref}>
       <div className="space-y-5">
         <ClassBanner classroom={classroom} />
         <ClassTabs classroom={classroom} activeTab={activeTab} />
-
-        {activeTab === "stream" && <StreamTab classroom={classroom} />}
-        {activeTab === "classwork" && <ClassworkTab classroom={classroom} />}
-        {activeTab === "people" && <PeopleTab />}
-        {activeTab === "grades" && <GradesTab />}
-        {activeTab === "your-work" && <YourWorkTab classroom={classroom} />}
-        {activeTab === "insights" && <InsightsTab />}
+        {children}
       </div>
     </AppFrame>
   );
@@ -415,7 +932,7 @@ function StreamTab({ classroom }: { classroom: Classroom }) {
 
         <Card className="p-5">
           <div className="flex items-start justify-between gap-3">
-            <div className="flex gap-3">
+            <Link href={`/class/${classroom.id}/classwork/${workItems[0].id}`} className="flex gap-3">
               <div className="rounded-full bg-[var(--color-blue-soft)] p-2 text-[var(--color-blue)]">
                 <FolderKanban className="h-4 w-4" />
               </div>
@@ -425,7 +942,7 @@ function StreamTab({ classroom }: { classroom: Classroom }) {
                 </p>
                 <p className="mt-1 text-sm text-[var(--color-text-soft)]">{workItems[0].title}</p>
               </div>
-            </div>
+            </Link>
             <span className="text-xs text-[var(--color-text-soft)]">{workItems[0].due}</span>
           </div>
         </Card>
@@ -445,13 +962,13 @@ function ClassworkTab({ classroom }: { classroom: Classroom }) {
     <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <button
-            type="button"
+          <Link
+            href={`/class/${classroom.id}/classwork/new-assignment`}
             className="inline-flex items-center gap-2 rounded-full bg-[var(--color-purple)] px-4 py-2 text-sm font-medium text-white"
           >
             <Plus className="h-4 w-4" />
             Create
-          </button>
+          </Link>
           <button
             type="button"
             className="inline-flex items-center gap-2 rounded-[8px] border border-[var(--color-border)] bg-white px-3 py-2 text-sm text-[var(--color-text)]"
@@ -472,7 +989,7 @@ function ClassworkTab({ classroom }: { classroom: Classroom }) {
 
             <div className="divide-y divide-[var(--color-border)]">
               {items.map((item) => (
-                <WorkRow key={item.id} item={item} />
+                <WorkRow key={item.id} item={item} classroomId={classroom.id} />
               ))}
             </div>
           </Card>
@@ -484,13 +1001,14 @@ function ClassworkTab({ classroom }: { classroom: Classroom }) {
           <p className="text-sm font-medium text-[var(--color-text)]">Create menu</p>
           <div className="mt-4 space-y-2">
             {createOptions.map((label) => (
-              <div
+              <Link
                 key={label}
+                href={label === "Assignment" ? `/class/${classroom.id}/classwork/new-assignment` : `/class/${classroom.id}/classwork`}
                 className="flex items-center justify-between rounded-[8px] px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-subtle)]"
               >
                 <span>{label}</span>
                 <ArrowRight className="h-4 w-4 text-[var(--color-text-soft)]" />
-              </div>
+              </Link>
             ))}
           </div>
         </Card>
@@ -498,21 +1016,24 @@ function ClassworkTab({ classroom }: { classroom: Classroom }) {
         <Card className="p-5">
           <p className="text-sm font-medium text-[var(--color-text)]">Assignment draft</p>
           <div className="mt-4 space-y-4">
-            <div className="rounded-[8px] border border-[var(--color-border)] bg-[var(--color-surface-subtle)] px-3 py-3 text-sm text-[var(--color-text)]">
-              Create your first video reflection
-            </div>
+            <Link
+              href={`/class/${classroom.id}/classwork/new-assignment`}
+              className="block rounded-[8px] border border-[var(--color-border)] bg-[var(--color-surface-subtle)] px-3 py-3 text-sm text-[var(--color-text)]"
+            >
+              {assignmentDraft.title}
+            </Link>
             <div className="rounded-[8px] border border-[var(--color-border)] bg-[var(--color-surface-subtle)] px-3 py-4 text-sm leading-6 text-[var(--color-text-soft)]">
-              Add instructions, attach files from Drive or YouTube, set points, and choose a due time.
+              {assignmentDraft.instructions}
             </div>
             <div className="grid grid-cols-3 gap-2 text-xs text-[var(--color-text-soft)]">
-              <AttachmentChip label="Drive" />
-              <AttachmentChip label="YouTube" />
-              <AttachmentChip label="Upload" />
+              {assignmentDraft.attachments.slice(0, 3).map((label) => (
+                <AttachmentChip key={label} label={label} />
+              ))}
             </div>
             <div className="grid gap-2 text-sm text-[var(--color-text-soft)]">
-              <span>For: {classroom.name}</span>
-              <span>Due: Fri, 11:59 PM</span>
-              <span>Rubric: 2 criteria</span>
+              <span>For: {assignmentDraft.forClass}</span>
+              <span>Due: {assignmentDraft.due}</span>
+              <span>Rubric: {assignmentDraft.rubric}</span>
             </div>
           </div>
         </Card>
@@ -646,7 +1167,17 @@ function YourWorkTab({ classroom }: { classroom: Classroom }) {
 
           <div className="rounded-[10px] border border-[var(--color-border)] px-4 py-4">
             <p className="text-sm font-medium text-[var(--color-text)]">Class comments</p>
-            <p className="mt-2 text-sm text-[var(--color-text-soft)]">Add class comment</p>
+            <div className="mt-4 space-y-3">
+              <CommentBubble
+                author="Sofia Carter"
+                body="Can we add the template and the recorded explanation together?"
+              />
+              <CommentBubble
+                author={classroom.teacher}
+                body="Yes. Attach both and use private comments if you want me to review before you turn it in."
+                teacher
+              />
+            </div>
           </div>
         </div>
       </Card>
@@ -658,22 +1189,26 @@ function YourWorkTab({ classroom }: { classroom: Classroom }) {
             <span className="text-xs font-medium text-[var(--color-blue)]">Assigned</span>
           </div>
           <div className="mt-4 space-y-2">
-            <button type="button" className="w-full rounded-[8px] border border-[var(--color-border)] px-3 py-2 text-sm text-[var(--color-text)]">
+            <Link
+              href={`/class/${classroom.id}/your-work/${focusItem.id}`}
+              className="block w-full rounded-[8px] border border-[var(--color-border)] px-3 py-2 text-center text-sm text-[var(--color-text)]"
+            >
               Add or create
-            </button>
-            <button type="button" className="w-full rounded-[8px] bg-[var(--color-text)] px-3 py-2 text-sm font-medium text-white">
+            </Link>
+            <Link
+              href={`/class/${classroom.id}/your-work/${focusItem.id}`}
+              className="block w-full rounded-[8px] bg-[var(--color-text)] px-3 py-2 text-center text-sm font-medium text-white"
+            >
               Turn in
-            </button>
+            </Link>
           </div>
         </Card>
 
         <Card className="p-4">
           <p className="text-sm font-medium text-[var(--color-text)]">Private comments</p>
           <div className="mt-3 space-y-3 text-sm text-[var(--color-text-soft)]">
-            <p>This was a fun assignment. Thank you!</p>
-            <div className="rounded-[8px] border border-[var(--color-border)] px-3 py-3">
-              Add private comment
-            </div>
+            <CommentBubble author="Sofia Carter" body="I have a draft ready. Can you check the vocabulary section?" />
+            <CommentBubble author={classroom.teacher} body="Yes. Submit it and I will leave feedback in the rubric." teacher />
           </div>
         </Card>
       </div>
@@ -733,10 +1268,10 @@ function AnnouncementCard({ item }: { item: Announcement }) {
   );
 }
 
-function WorkRow({ item }: { item: WorkItem }) {
+function WorkRow({ item, classroomId }: { item: WorkItem; classroomId: string }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-4 py-4">
-      <div className="flex gap-3">
+      <Link href={`/class/${classroomId}/classwork/${item.id}`} className="flex gap-3">
         <div className="rounded-full bg-[var(--color-blue-soft)] p-2 text-[var(--color-blue)]">
           <CircleDot className="h-4 w-4" />
         </div>
@@ -765,7 +1300,7 @@ function WorkRow({ item }: { item: WorkItem }) {
             ) : null}
           </div>
         </div>
-      </div>
+      </Link>
       <StatusBadge status={item.status} />
     </div>
   );
@@ -903,10 +1438,141 @@ function SubtleAction({ title, body }: { title: string; body: string }) {
   );
 }
 
+function ComposerField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[8px] border border-[var(--color-border)] bg-[var(--color-surface-subtle)] px-3 py-3">
+      <p className="text-xs font-medium uppercase tracking-[0.08em] text-[var(--color-text-soft)]">{label}</p>
+      <p className="mt-2 text-sm text-[var(--color-text)]">{value}</p>
+    </div>
+  );
+}
+
+function ComposerTool({ label }: { label: string }) {
+  return (
+    <span className="rounded-[6px] border border-[var(--color-border)] px-2 py-1 text-xs">{label}</span>
+  );
+}
+
+function CheckboxRow({ label, checked }: { label: string; checked: boolean }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span
+        aria-hidden="true"
+        className={`flex h-4 w-4 items-center justify-center rounded-[4px] border ${
+          checked
+            ? "border-[var(--color-blue)] bg-[var(--color-blue)] text-white"
+            : "border-[var(--color-border)] bg-white text-transparent"
+        }`}
+      >
+        <Plus className="h-3 w-3 rotate-45" />
+      </span>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function AttachmentOption({ label }: { label: string }) {
+  const iconMap = {
+    Drive: FolderKanban,
+    YouTube: Video,
+    Create: FileText,
+    Upload,
+    Link: Link2,
+  } as const;
+
+  const Icon = iconMap[label as keyof typeof iconMap] ?? FileText;
+
+  return (
+    <div className="rounded-[10px] border border-[var(--color-border)] bg-white px-3 py-4 text-center">
+      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-blue-soft)] text-[var(--color-blue)]">
+        <Icon className="h-4 w-4" />
+      </div>
+      <p className="mt-2 text-xs font-medium text-[var(--color-text)]">{label}</p>
+    </div>
+  );
+}
+
+function RubricCriterionCard({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface-subtle)] px-4 py-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-medium text-[var(--color-text)]">{title}</p>
+        <span className="text-xs text-[var(--color-text-soft)]">50 pts</span>
+      </div>
+      <p className="mt-2 text-sm leading-6 text-[var(--color-text-soft)]">{body}</p>
+    </div>
+  );
+}
+
+function AttachmentPill({ label }: { label: string }) {
+  return (
+    <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface-subtle)] px-3 py-2 text-sm text-[var(--color-text-soft)]">
+      {label}
+    </span>
+  );
+}
+
+function SubmissionRow({ submission }: { submission: SubmissionRecord }) {
+  return (
+    <div className="rounded-[10px] border border-[var(--color-border)] px-4 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium text-[var(--color-text)]">{submission.student}</p>
+          <p className="mt-1 text-xs text-[var(--color-text-soft)]">{submission.submittedAt}</p>
+        </div>
+        <SubmissionStatus status={submission.status} />
+      </div>
+      {submission.grade ? <p className="mt-3 text-sm font-medium text-[var(--color-text)]">{submission.grade}</p> : null}
+      <p className="mt-2 text-sm leading-6 text-[var(--color-text-soft)]">{submission.note}</p>
+    </div>
+  );
+}
+
+function CommentBubble({
+  author,
+  body,
+  teacher,
+}: {
+  author: string;
+  body: string;
+  teacher?: boolean;
+}) {
+  return (
+    <div className={`rounded-[10px] px-4 py-4 ${teacher ? "bg-[var(--color-blue-soft)]" : "bg-[var(--color-surface-subtle)]"}`}>
+      <div className="flex items-center gap-2">
+        {teacher ? <Speech className="h-4 w-4 text-[var(--color-blue)]" /> : null}
+        <p className="text-sm font-medium text-[var(--color-text)]">{author}</p>
+      </div>
+      <p className="mt-2 text-sm leading-6 text-[var(--color-text-soft)]">{body}</p>
+    </div>
+  );
+}
+
+function ScoreRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[8px] border border-[var(--color-border)] bg-[var(--color-surface-subtle)] px-3 py-3">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm text-[var(--color-text)]">{label}</span>
+        <span className="text-sm font-medium text-[var(--color-text)]">{value}</span>
+      </div>
+    </div>
+  );
+}
+
 function AttachmentChip({ label }: { label: string }) {
   return (
     <div className="rounded-full border border-[var(--color-border)] px-3 py-2 text-center">{label}</div>
   );
+}
+
+function SubmissionStatus({ status }: { status: SubmissionRecord["status"] }) {
+  const tones = {
+    "Turned in": "bg-[var(--color-blue-soft)] text-[var(--color-blue)]",
+    Returned: "bg-[var(--color-green-soft)] text-[var(--color-green)]",
+    Missing: "bg-[#fce8e6] text-[#c5221f]",
+  };
+
+  return <span className={`rounded-full px-3 py-1 text-xs font-medium ${tones[status]}`}>{status}</span>;
 }
 
 function StatusBadge({ status }: { status: WorkItem["status"] }) {

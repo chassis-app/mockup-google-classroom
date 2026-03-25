@@ -39,11 +39,37 @@ export type WorkItem = {
   description: string;
   topic: string;
   due: string;
+  postedAt?: string;
   points?: number;
   status: "Published" | "Scheduled" | "Draft";
   assigned: number;
   turnedIn: number;
   rubric?: string;
+  attachments?: string[];
+};
+
+export type AssignmentDraft = {
+  title: string;
+  instructions: string;
+  forClass: string;
+  assignedTo: string;
+  points: number;
+  due: string;
+  topic: string;
+  rubric: string;
+  originalityReports: boolean;
+  closeSubmissions: boolean;
+  attachments: string[];
+};
+
+export type SubmissionRecord = {
+  id: string;
+  student: string;
+  status: "Turned in" | "Returned" | "Missing";
+  submittedAt: string;
+  grade?: string;
+  note: string;
+  attachment?: string;
 };
 
 export type Person = {
@@ -159,11 +185,13 @@ export const workItems: WorkItem[] = [
       "Create a short visual explanation showing how the signal moves, amplifies, and changes the cell response.",
     topic: "Unit 4",
     due: "Mar 20, 11:59 PM",
+    postedAt: "Yesterday",
     points: 100,
     status: "Published",
     assigned: 28,
     turnedIn: 21,
     rubric: "Signal pathway · Scientific vocabulary",
+    attachments: ["Drive template", "YouTube exemplar", "Rubric"],
   },
   {
     id: "w2",
@@ -172,10 +200,12 @@ export const workItems: WorkItem[] = [
     description: "Submit the quiz before advisory. Scores return after teacher review.",
     topic: "Unit 4",
     due: "Mar 21, 9:15 AM",
+    postedAt: "Today",
     points: 20,
     status: "Published",
     assigned: 28,
     turnedIn: 26,
+    attachments: ["Google Form"],
   },
   {
     id: "w3",
@@ -184,6 +214,7 @@ export const workItems: WorkItem[] = [
     description: "Respond before discussion. One strong paragraph is enough.",
     topic: "Seminar prep",
     due: "Mar 22, 8:00 AM",
+    postedAt: "Scheduled for tomorrow",
     points: 5,
     status: "Scheduled",
     assigned: 28,
@@ -196,9 +227,11 @@ export const workItems: WorkItem[] = [
     description: "Always-on support material for lab setup and vocabulary review.",
     topic: "Resources",
     due: "Always available",
+    postedAt: "Last week",
     status: "Published",
     assigned: 28,
     turnedIn: 0,
+    attachments: ["Slide deck", "Vocabulary sheet"],
   },
   {
     id: "w5",
@@ -207,12 +240,70 @@ export const workItems: WorkItem[] = [
     description: "Client extension surface for differentiated follow-up work and pacing prompts.",
     topic: "Prototype extras",
     due: "Drafting",
+    postedAt: "Draft",
     points: 12,
     status: "Draft",
     assigned: 12,
     turnedIn: 0,
+    attachments: ["Reflection template"],
   },
 ];
+
+export const assignmentDraft: AssignmentDraft = {
+  title: "Create your first video reflection",
+  instructions:
+    "Record a two-minute walkthrough of how the signal starts, amplifies, and changes the cell response. Use the storyboard template before you upload.",
+  forClass: "Biology 240",
+  assignedTo: "All students",
+  points: 100,
+  due: "Fri, Mar 22, 11:59 PM",
+  topic: "Unit 4",
+  rubric: "Signal pathway rubric",
+  originalityReports: true,
+  closeSubmissions: true,
+  attachments: ["Drive", "YouTube", "Create", "Upload", "Link"],
+};
+
+export const submissionRecords: Record<string, SubmissionRecord[]> = {
+  w1: [
+    {
+      id: "s1",
+      student: "Sofia Carter",
+      status: "Turned in",
+      submittedAt: "Today, 8:14 AM",
+      grade: "Draft 96/100",
+      note: "Clear explanation and strong use of vocabulary.",
+      attachment: "Storyboard video.mp4",
+    },
+    {
+      id: "s2",
+      student: "Elijah Brown",
+      status: "Missing",
+      submittedAt: "No submission yet",
+      note: "Needs check-in before the due date closes.",
+    },
+    {
+      id: "s3",
+      student: "Nora Kim",
+      status: "Returned",
+      submittedAt: "Yesterday, 6:22 PM",
+      grade: "100/100",
+      note: "Excellent storyboard and strong explanation of amplification.",
+      attachment: "Storyboard-v2.mov",
+    },
+  ],
+  w2: [
+    {
+      id: "s4",
+      student: "Sofia Carter",
+      status: "Returned",
+      submittedAt: "Today, 9:02 AM",
+      grade: "19/20",
+      note: "One missed genetics vocabulary item.",
+      attachment: "Genetics checkpoint",
+    },
+  ],
+};
 
 export const people: Person[] = [
   {
@@ -290,6 +381,14 @@ export const referenceImages: ReferenceImage[] = [
 
 export function getClassroom(classId: string) {
   return classes.find((item) => item.id === classId) ?? classes[0];
+}
+
+export function getWorkItem(workId: string) {
+  return workItems.find((item) => item.id === workId) ?? workItems[0];
+}
+
+export function getSubmissionRecords(workId: string) {
+  return submissionRecords[workId] ?? [];
 }
 
 export const tabs: Array<{ id: ClassTab; label: string }> = [
