@@ -9,6 +9,7 @@ export type ClassTab =
 export type Classroom = {
   id: string;
   name: string;
+  description?: string;
   section: string;
   subject: string;
   room: string;
@@ -20,6 +21,18 @@ export type Classroom = {
   roster: number;
   completion: number;
   upcoming: string;
+};
+
+export type ClassSettingsData = {
+  inviteCodesEnabled: boolean;
+  inviteLink: string;
+  streamPermission: string;
+  classworkOnStream: string;
+  showDeletedItems: boolean;
+  meetLinkMessage: string;
+  overallGradeCalculation: string;
+  showOverallGradeToStudents: boolean;
+  gradeCategories: string[];
 };
 
 export type Announcement = {
@@ -99,6 +112,7 @@ export const classes: Classroom[] = [
   {
     id: "biology-240",
     name: "Biology 240",
+    description: "Cell communication, lab reflection, and rubric-based video explanations.",
     section: "Period 2",
     subject: "Life Science",
     room: "Lab 204",
@@ -114,6 +128,7 @@ export const classes: Classroom[] = [
   {
     id: "history-studio",
     name: "World History Seminar",
+    description: "Source analysis, seminar prep, and rubric-based writing tasks.",
     section: "Advisory",
     subject: "Humanities",
     room: "Room 118",
@@ -129,6 +144,7 @@ export const classes: Classroom[] = [
   {
     id: "algebra-lab",
     name: "Algebra Lab",
+    description: "Practice sets, checkpoint quizzes, and intervention follow-up work.",
     section: "Period 5",
     subject: "Mathematics",
     room: "Room 306",
@@ -305,6 +321,21 @@ export const submissionRecords: Record<string, SubmissionRecord[]> = {
   ],
 };
 
+export const classSettings: Record<string, ClassSettingsData> = {
+  "biology-240": {
+    inviteCodesEnabled: true,
+    inviteLink: "https://classroom.google.com/c/NjcxMDk4ODMwNzQ1?cjc=XQ7PLANT",
+    streamPermission: "Students can post and comment",
+    classworkOnStream: "Show condensed notifications",
+    showDeletedItems: false,
+    meetLinkMessage:
+      "Classroom Meet link is available to students during scheduled support windows and teacher-started sessions.",
+    overallGradeCalculation: "No overall grade",
+    showOverallGradeToStudents: false,
+    gradeCategories: ["Lab reflection", "Quiz", "Discussion", "Project"],
+  },
+};
+
 export const people: Person[] = [
   {
     id: "p1",
@@ -381,6 +412,10 @@ export const referenceImages: ReferenceImage[] = [
 
 export function getClassroom(classId: string) {
   return classes.find((item) => item.id === classId) ?? classes[0];
+}
+
+export function getClassSettings(classId: string) {
+  return classSettings[classId] ?? classSettings["biology-240"];
 }
 
 export function getWorkItem(workId: string) {

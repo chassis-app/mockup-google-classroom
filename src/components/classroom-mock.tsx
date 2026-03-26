@@ -33,6 +33,7 @@ import {
   assignmentDraft,
   classes,
   getClassroom,
+  getClassSettings,
   getSubmissionRecords,
   getWorkItem,
   gradeRows,
@@ -58,14 +59,7 @@ type ClassPageProps = {
 
 const globalLinks = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/class/biology-240/stream", label: "Calendar", icon: CalendarDays },
-];
-
-const utilityLinks = [
-  { href: "/class/biology-240/grades", label: "To review", icon: NotebookTabs },
-  { href: "/class/biology-240/your-work", label: "Enrolled", icon: BookOpen },
-  { href: "/class/biology-240/insights", label: "Archived classes", icon: Archive },
-  { href: "/class/biology-240/stream", label: "Settings", icon: Settings },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
 ];
 
 const createOptions = [
@@ -173,6 +167,7 @@ export function DashboardPage({ activeClassId = classes[0].id }: DashboardProps)
                         width={1200}
                         height={700}
                         className="h-32 w-full object-cover object-top"
+                        loading={image === referenceImages[0] ? "eager" : undefined}
                       />
                     </div>
                     <div>
@@ -205,17 +200,329 @@ export function DashboardPage({ activeClassId = classes[0].id }: DashboardProps)
   );
 }
 
+export function CalendarOverviewPage() {
+  const nextDeadlines = workItems
+    .filter((item) => item.status !== "Draft")
+    .slice(0, 4);
+
+  return (
+    <AppFrame currentHref="/calendar">
+      <section className="space-y-4">
+        <Card className="p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-[var(--color-text-soft)]">Calendar</p>
+              <h1 className="mt-1 text-[32px] font-medium tracking-[-0.02em] text-[var(--color-text)]">
+                Upcoming work and class schedule
+              </h1>
+            </div>
+            <ActionButton label="Add event" subtle />
+          </div>
+          <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <Card className="p-5">
+              <div className="grid grid-cols-7 gap-2 text-center text-xs font-medium uppercase tracking-[0.08em] text-[var(--color-text-soft)]">
+                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                  <span key={day}>{day}</span>
+                ))}
+              </div>
+              <div className="mt-3 grid grid-cols-7 gap-2">
+                {Array.from({ length: 28 }, (_, index) => {
+                  const day = index + 1;
+                  const highlighted = [18, 20, 22, 24].includes(day);
+
+                  return (
+                    <div
+                      key={day}
+                      className={`min-h-20 rounded-[10px] border px-2 py-2 text-sm ${
+                        highlighted
+                          ? "border-[var(--color-blue)] bg-[var(--color-blue-soft)] text-[var(--color-text)]"
+                          : "border-[var(--color-border)] bg-white text-[var(--color-text-soft)]"
+                      }`}
+                    >
+                      <div className="font-medium">{day}</div>
+                      {highlighted ? <p className="mt-2 text-xs">Classwork due</p> : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+
+            <div className="space-y-4">
+              <Card className="p-5">
+                <p className="text-sm font-medium text-[var(--color-text)]">Due soon</p>
+                <div className="mt-4 space-y-3">
+                  {nextDeadlines.map((item) => (
+                    <SubtleAction
+                      key={item.id}
+                      title={item.title}
+                      body={`${item.topic} · ${item.due}`}
+                    />
+                  ))}
+                </div>
+              </Card>
+
+              <Card className="p-5">
+                <p className="text-sm font-medium text-[var(--color-text)]">Google Classroom fit</p>
+                <p className="mt-3 text-sm leading-6 text-[var(--color-text-soft)]">
+                  This page gives the shell a real calendar destination instead of routing the label back into a class
+                  page. It keeps due dates and class events visible from the global workspace level.
+                </p>
+              </Card>
+            </div>
+          </div>
+        </Card>
+      </section>
+    </AppFrame>
+  );
+}
+
+export function ReviewOverviewPage() {
+  const reviewItems = getSubmissionRecords("w1");
+
+  return (
+    <AppFrame currentHref="/review">
+      <section className="space-y-4">
+        <Card className="p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-[var(--color-text-soft)]">To review</p>
+              <h1 className="mt-1 text-[32px] font-medium tracking-[-0.02em] text-[var(--color-text)]">
+                Teacher review queue
+              </h1>
+            </div>
+            <Link
+              href="/class/biology-240/classwork/w1/review"
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--color-blue)] px-4 py-2 text-sm font-medium text-white"
+            >
+              Open review flow
+            </Link>
+          </div>
+          <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <Card className="p-0">
+              <div className="border-b border-[var(--color-border)] px-5 py-4">
+                <p className="text-sm font-medium text-[var(--color-text)]">Needs attention</p>
+              </div>
+              <div className="divide-y divide-[var(--color-border)]">
+                {reviewItems.map((submission) => (
+                  <div key={submission.id} className="px-5 py-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-[var(--color-text)]">{submission.student}</p>
+                        <p className="mt-1 text-xs text-[var(--color-text-soft)]">{submission.submittedAt}</p>
+                      </div>
+                      <SubmissionStatus status={submission.status} />
+                    </div>
+                    <p className="mt-3 text-sm text-[var(--color-text-soft)]">{submission.note}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <div className="space-y-4">
+              <SummaryCard label="Turned in" value="21" note="Ready for rubric scoring." />
+              <SummaryCard label="Missing" value="3" note="Still need a teacher follow-up." />
+              <SummaryCard label="Returned" value="18" note="Already sent back with feedback." />
+            </div>
+          </div>
+        </Card>
+      </section>
+    </AppFrame>
+  );
+}
+
+export function TodoOverviewPage() {
+  const todoItems = workItems.filter((item) => item.status !== "Draft").slice(0, 4);
+
+  return (
+    <AppFrame currentHref="/todo">
+      <section className="space-y-4">
+        <Card className="p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-[var(--color-text-soft)]">To-do</p>
+              <h1 className="mt-1 text-[32px] font-medium tracking-[-0.02em] text-[var(--color-text)]">
+                Student work summary
+              </h1>
+            </div>
+            <Link
+              href="/class/biology-240/your-work"
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--color-text)]"
+            >
+              Open your work
+            </Link>
+          </div>
+
+          <div className="mt-5 grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+            <div className="space-y-4">
+              <SummaryCard label="Assigned" value="3" note="Current work ready to open." />
+              <SummaryCard label="Returned" value="11" note="Includes rubric feedback." />
+              <SummaryCard label="Missing" value="1" note="Needs follow-up before class." />
+            </div>
+
+            <Card className="p-0">
+              <div className="border-b border-[var(--color-border)] px-5 py-4">
+                <p className="text-sm font-medium text-[var(--color-text)]">Upcoming tasks</p>
+              </div>
+              <div className="divide-y divide-[var(--color-border)]">
+                {todoItems.map((item) => (
+                  <Link key={item.id} href={`/class/biology-240/your-work/${item.id}`} className="block px-5 py-4">
+                    <p className="text-sm font-medium text-[var(--color-text)]">{item.title}</p>
+                    <p className="mt-1 text-sm text-[var(--color-text-soft)]">{item.topic} · {item.due}</p>
+                  </Link>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </Card>
+      </section>
+    </AppFrame>
+  );
+}
+
+export function ArchivedClassesPage() {
+  const archived = classes.slice(1);
+
+  return (
+    <AppFrame currentHref="/archived">
+      <section className="space-y-4">
+        <Card className="p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-[var(--color-text-soft)]">Archived classes</p>
+              <h1 className="mt-1 text-[32px] font-medium tracking-[-0.02em] text-[var(--color-text)]">
+                Past classes and templates
+              </h1>
+            </div>
+            <ActionButton label="Restore class" subtle />
+          </div>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            {archived.map((item) => (
+              <Card key={item.id} className="p-5">
+                <p className="text-lg font-medium text-[var(--color-text)]">{item.name}</p>
+                <p className="mt-1 text-sm text-[var(--color-text-soft)]">{item.section}</p>
+                <p className="mt-4 text-sm leading-6 text-[var(--color-text-soft)]">{item.description ?? item.hero}</p>
+                <div className="mt-4 flex items-center justify-between text-sm text-[var(--color-text-soft)]">
+                  <span>{item.teacher}</span>
+                  <Link href={`/class/${item.id}/stream`} className="text-[var(--color-blue)]">
+                    Open
+                  </Link>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </Card>
+      </section>
+    </AppFrame>
+  );
+}
+
 export function ClassPage({ classId, activeTab }: ClassPageProps) {
   const classroom = getClassroom(classId);
 
   return (
-    <ClassScaffold classroom={classroom} activeTab={activeTab} currentHref={`/class/${classroom.id}/${activeTab}`}>
+    <ClassScaffold currentHref={`/class/${classroom.id}/${activeTab}`} classroom={classroom} activeTab={activeTab}>
       {activeTab === "stream" && <StreamTab classroom={classroom} />}
       {activeTab === "classwork" && <ClassworkTab classroom={classroom} />}
       {activeTab === "people" && <PeopleTab />}
       {activeTab === "grades" && <GradesTab />}
       {activeTab === "your-work" && <YourWorkTab classroom={classroom} />}
       {activeTab === "insights" && <InsightsTab />}
+    </ClassScaffold>
+  );
+}
+
+export function ClassSettingsPage({ classId }: { classId: string }) {
+  const classroom = getClassroom(classId);
+  const settings = getClassSettings(classId);
+
+  return (
+    <ClassScaffold currentHref={`/class/${classroom.id}/settings`} classroom={classroom}>
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href={`/class/${classroom.id}/stream`}
+            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-blue)]"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to class
+          </Link>
+          <ActionButton label="Save" />
+        </div>
+
+        <div className="space-y-4">
+          <Card className="p-5">
+            <h2 className="text-[32px] font-medium tracking-[-0.02em] text-[var(--color-text)]">Class details</h2>
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              <ComposerField label="Class name" value={classroom.name} />
+              <ComposerField label="Section" value={classroom.section} />
+              <ComposerField label="Subject" value={classroom.subject} />
+              <ComposerField label="Room" value={classroom.room} />
+              <div className="md:col-span-2">
+                <ComposerField label="Description" value={classroom.description ?? ""} />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-5">
+            <h3 className="text-xl font-medium text-[var(--color-text)]">General</h3>
+            <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="space-y-4">
+                <ComposerField label="Invite link" value={settings.inviteLink} />
+                <ComposerField label="Class code" value={classroom.classCode} />
+                <ComposerField label="Stream" value={settings.streamPermission} />
+                <ComposerField label="Classwork on the stream" value={settings.classworkOnStream} />
+              </div>
+
+              <div className="space-y-4">
+                <CheckboxPanel
+                  title="Invite codes"
+                  description="Settings apply to both invite links and class codes."
+                  checked={settings.inviteCodesEnabled}
+                />
+                <CheckboxPanel
+                  title="Show deleted items"
+                  description="Only teachers can view deleted items."
+                  checked={settings.showDeletedItems}
+                />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-5">
+            <h3 className="text-xl font-medium text-[var(--color-text)]">Manage Meet link</h3>
+            <p className="mt-3 text-sm leading-6 text-[var(--color-text-soft)]">{settings.meetLinkMessage}</p>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <ComposerField label="Meet link" value={classroom.meetLink} />
+              <ComposerField label="Visibility" value="Visible to students" />
+            </div>
+          </Card>
+
+          <Card className="p-5">
+            <h3 className="text-xl font-medium text-[var(--color-text)]">Grading</h3>
+            <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="space-y-4">
+                <ComposerField label="Overall grade calculation" value={settings.overallGradeCalculation} />
+                <ComposerField label="Grade categories" value={settings.gradeCategories.join(" · ")} />
+              </div>
+
+              <div className="space-y-4">
+                <CheckboxPanel
+                  title="Show overall grade to students"
+                  description="Student visibility follows the selected grading mode."
+                  checked={settings.showOverallGradeToStudents}
+                />
+                <Card className="p-4">
+                  <p className="text-sm font-medium text-[var(--color-text)]">Why this matters</p>
+                  <p className="mt-3 text-sm leading-6 text-[var(--color-text-soft)]">
+                    This screen rounds out the mock with the class-level policy controls visible in real Classroom:
+                    invite management, stream permissions, Meet visibility, and grading behavior.
+                  </p>
+                </Card>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </section>
     </ClassScaffold>
   );
 }
@@ -716,15 +1023,18 @@ function ClassScaffold({
   children,
 }: {
   classroom: Classroom;
-  activeTab: ClassTab;
+  activeTab?: ClassTab;
   currentHref: string;
   children: React.ReactNode;
 }) {
+  const resolvedActiveTab =
+    activeTab ?? tabs.find((tab) => currentHref.startsWith(`/class/${classroom.id}/${tab.id}`))?.id;
+
   return (
     <AppFrame currentHref={currentHref}>
       <div className="space-y-5">
         <ClassBanner classroom={classroom} />
-        <ClassTabs classroom={classroom} activeTab={activeTab} />
+        <ClassTabs classroom={classroom} activeTab={resolvedActiveTab} />
         {children}
       </div>
     </AppFrame>
@@ -732,6 +1042,14 @@ function ClassScaffold({
 }
 
 function AppFrame({ children, currentHref }: { children: React.ReactNode; currentHref: string }) {
+  const currentClassId = currentHref.match(/\/class\/([^/]+)/)?.[1] ?? classes[0].id;
+  const utilityLinks = [
+    { href: "/review", label: "To review", icon: NotebookTabs },
+    { href: "/todo", label: "To-do", icon: BookOpen },
+    { href: "/archived", label: "Archived classes", icon: Archive },
+    { href: `/class/${currentClassId}/settings`, label: "Settings", icon: Settings },
+  ];
+
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <a
@@ -801,8 +1119,8 @@ function AppFrame({ children, currentHref }: { children: React.ReactNode; curren
               </div>
               <div className="flex items-center gap-2">
                 <HeaderIconButton icon={Plus} label="Create" />
-                <HeaderIconButton icon={CalendarDays} label="Calendar" />
-                <HeaderIconButton icon={Settings} label="Settings" />
+                <HeaderIconButton icon={CalendarDays} label="Calendar" href="/calendar" />
+                <HeaderIconButton icon={Settings} label="Settings" href={`/class/${currentClassId}/settings`} />
               </div>
             </div>
           </header>
@@ -842,7 +1160,7 @@ function ClassTabs({
   activeTab,
 }: {
   classroom: Classroom;
-  activeTab: ClassTab;
+  activeTab?: ClassTab;
 }) {
   return (
     <nav
@@ -1375,12 +1693,29 @@ function SidebarLink({
   );
 }
 
-function HeaderIconButton({ icon: Icon, label }: { icon: typeof Plus; label: string }) {
+function HeaderIconButton({
+  icon: Icon,
+  label,
+  href,
+}: {
+  icon: typeof Plus;
+  label: string;
+  href?: string;
+}) {
+  const className =
+    "inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-white px-3 py-2 text-sm text-[var(--color-text)]";
+
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        <Icon className="h-4 w-4" />
+        <span>{label}</span>
+      </Link>
+    );
+  }
+
   return (
-    <button
-      type="button"
-      className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-white px-3 py-2 text-sm text-[var(--color-text)]"
-    >
+    <button type="button" className={className}>
       <Icon className="h-4 w-4" />
       <span>{label}</span>
     </button>
@@ -1468,6 +1803,37 @@ function CheckboxRow({ label, checked }: { label: string; checked: boolean }) {
       </span>
       <span>{label}</span>
     </div>
+  );
+}
+
+function CheckboxPanel({
+  title,
+  description,
+  checked,
+}: {
+  title: string;
+  description: string;
+  checked: boolean;
+}) {
+  return (
+    <Card className="p-4">
+      <div className="flex items-start gap-3">
+        <span
+          aria-hidden="true"
+          className={`mt-1 flex h-4 w-4 items-center justify-center rounded-[4px] border ${
+            checked
+              ? "border-[var(--color-blue)] bg-[var(--color-blue)] text-white"
+              : "border-[var(--color-border)] bg-white text-transparent"
+          }`}
+        >
+          <Plus className="h-3 w-3 rotate-45" />
+        </span>
+        <div>
+          <p className="text-sm font-medium text-[var(--color-text)]">{title}</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--color-text-soft)]">{description}</p>
+        </div>
+      </div>
+    </Card>
   );
 }
 
