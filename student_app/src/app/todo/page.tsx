@@ -1,5 +1,6 @@
-import { TodoOverviewPage } from "@/components/student-classroom";
+import { redirect } from "next/navigation";
+import { defaultLocale } from "@/i18n/config";
 
-export default function TodoPage() {
-  return <TodoOverviewPage />;
+export default function TodoRedirectPage() {
+  redirect(`/${defaultLocale}/todo`);
 }

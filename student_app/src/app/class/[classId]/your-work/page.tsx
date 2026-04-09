@@ -1,10 +1,11 @@
-import { ClassPage } from "@/components/student-classroom";
+import { redirect } from "next/navigation";
+import { defaultLocale } from "@/i18n/config";
 
-export default async function YourWorkPage({
+export default async function YourWorkRedirectPage({
   params,
 }: {
   params: Promise<{ classId: string }>;
 }) {
   const { classId } = await params;
-  return <ClassPage classId={classId} activeTab="your-work" />;
+  redirect(`/${defaultLocale}/class/${classId}/your-work`);
 }

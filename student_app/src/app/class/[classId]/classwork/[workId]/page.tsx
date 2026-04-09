@@ -1,10 +1,11 @@
-import { WorkDetailPage } from "@/components/student-classroom";
+import { redirect } from "next/navigation";
+import { defaultLocale } from "@/i18n/config";
 
-export default async function ClassworkDetailPage({
+export default async function ClassworkDetailRedirectPage({
   params,
 }: {
   params: Promise<{ classId: string; workId: string }>;
 }) {
   const { classId, workId } = await params;
-  return <WorkDetailPage classId={classId} workId={workId} source="classwork" />;
+  redirect(`/${defaultLocale}/class/${classId}/classwork/${workId}`);
 }

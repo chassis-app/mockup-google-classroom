@@ -1,10 +1,11 @@
-import { ClassPage } from "@/components/student-classroom";
+import { redirect } from "next/navigation";
+import { defaultLocale } from "@/i18n/config";
 
-export default async function StreamPage({
+export default async function StreamRedirectPage({
   params,
 }: {
   params: Promise<{ classId: string }>;
 }) {
   const { classId } = await params;
-  return <ClassPage classId={classId} activeTab="stream" />;
+  redirect(`/${defaultLocale}/class/${classId}/stream`);
 }
