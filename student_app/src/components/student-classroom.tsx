@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   CalendarDays,
@@ -883,14 +883,38 @@ function LanguageSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const currentLabel = dictionary.language.options[locale];
 
+  useEffect(() => {
+    function handlePointerDown(event: PointerEvent) {
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative z-40">
       <button
         type="button"
         aria-label={dictionary.language.label}
         aria-expanded={open}
+        aria-haspopup="menu"
         onClick={() => setOpen((value) => !value)}
         className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 text-sm text-[var(--color-text)]"
       >
@@ -899,41 +923,39 @@ function LanguageSwitcher() {
       </button>
 
       {open ? (
-        <>
-          <button
-            type="button"
-            aria-label={dictionary.navigation.closeNavigation}
-            className="fixed inset-0 z-20"
-            onClick={() => setOpen(false)}
-          />
-          <div className="absolute right-0 top-[calc(100%+8px)] z-30 min-w-64 rounded-2xl border border-[var(--color-border)] bg-white p-2 shadow-[var(--shadow-card)]">
-            <p className="px-3 py-2 text-xs font-medium uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
-              {dictionary.language.label}
-            </p>
-            {Object.entries(dictionary.language.options).map(([value, label]) => {
-              const isActive = value === locale;
+        <div
+          role="menu"
+          aria-label={dictionary.language.label}
+          className="absolute right-0 top-[calc(100%+8px)] z-50 min-w-64 rounded-2xl border border-[var(--color-border)] bg-white p-2 shadow-[var(--shadow-card)]"
+        >
+          <p className="px-3 py-2 text-xs font-medium uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
+            {dictionary.language.label}
+          </p>
+          {Object.entries(dictionary.language.options).map(([value, label]) => {
+            const isActive = value === locale;
 
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => {
-                    setOpen(false);
-                    router.push(switchLocalePath(pathname, value as Locale));
-                  }}
-                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm ${
-                    isActive
-                      ? "bg-[var(--color-blue-soft)] font-medium text-[var(--color-blue)]"
-                      : "text-[var(--color-text)] hover:bg-[var(--color-surface-hover)]"
-                  }`}
-                >
-                  <span>{label}</span>
-                  {isActive ? <span>•</span> : null}
-                </button>
-              );
-            })}
-          </div>
-        </>
+            return (
+              <button
+                key={value}
+                type="button"
+                role="menuitemradio"
+                aria-checked={isActive}
+                onClick={() => {
+                  setOpen(false);
+                  router.push(switchLocalePath(pathname, value as Locale));
+                }}
+                className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm ${
+                  isActive
+                    ? "bg-[var(--color-blue-soft)] font-medium text-[var(--color-blue)]"
+                    : "text-[var(--color-text)] hover:bg-[var(--color-surface-hover)]"
+                }`}
+              >
+                <span>{label}</span>
+                {isActive ? <span>•</span> : null}
+              </button>
+            );
+          })}
+        </div>
       ) : null}
     </div>
   );
