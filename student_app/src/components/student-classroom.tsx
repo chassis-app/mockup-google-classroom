@@ -882,24 +882,60 @@ function LanguageSwitcher() {
   const { dictionary, locale } = useI18n();
   const pathname = usePathname();
   const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const currentLabel = dictionary.language.options[locale];
 
   return (
-    <label className="relative flex items-center">
-      <span className="sr-only">{dictionary.language.label}</span>
-      <select
+    <div className="relative">
+      <button
+        type="button"
         aria-label={dictionary.language.label}
-        value={locale}
-        onChange={(event) => router.push(switchLocalePath(pathname, event.target.value as Locale))}
-        className="rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 pr-8 text-sm text-[var(--color-text)] outline-none"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 text-sm text-[var(--color-text)]"
       >
-        {Object.entries(dictionary.language.options).map(([value, label]) => (
-          <option key={value} value={value}>
-            {label}
-          </option>
-        ))}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-2 h-4 w-4 text-[var(--color-text-soft)]" />
-    </label>
+        <span className="max-w-40 truncate">{currentLabel}</span>
+        <ChevronDown className={`h-4 w-4 text-[var(--color-text-soft)] transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open ? (
+        <>
+          <button
+            type="button"
+            aria-label={dictionary.navigation.closeNavigation}
+            className="fixed inset-0 z-20"
+            onClick={() => setOpen(false)}
+          />
+          <div className="absolute right-0 top-[calc(100%+8px)] z-30 min-w-64 rounded-2xl border border-[var(--color-border)] bg-white p-2 shadow-[var(--shadow-card)]">
+            <p className="px-3 py-2 text-xs font-medium uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
+              {dictionary.language.label}
+            </p>
+            {Object.entries(dictionary.language.options).map(([value, label]) => {
+              const isActive = value === locale;
+
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    router.push(switchLocalePath(pathname, value as Locale));
+                  }}
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm ${
+                    isActive
+                      ? "bg-[var(--color-blue-soft)] font-medium text-[var(--color-blue)]"
+                      : "text-[var(--color-text)] hover:bg-[var(--color-surface-hover)]"
+                  }`}
+                >
+                  <span>{label}</span>
+                  {isActive ? <span>•</span> : null}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      ) : null}
+    </div>
   );
 }
 
