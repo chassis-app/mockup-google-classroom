@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   CalendarDays,
@@ -24,7 +24,7 @@ import {
   X,
   Youtube,
 } from "lucide-react";
-import { localizeHref, stripLocaleFromPathname, switchLocalePath, type Locale } from "@/i18n/config";
+import { localizeHref, locales, stripLocaleFromPathname, switchLocalePath } from "@/i18n/config";
 import { useI18n } from "@/i18n/provider";
 import {
   getCalendarEvents,
@@ -882,81 +882,24 @@ function LanguageSwitcher() {
   const { dictionary, locale } = useI18n();
   const pathname = usePathname();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement | null>(null);
   const currentLabel = dictionary.language.options[locale];
-
-  useEffect(() => {
-    function handlePointerDown(event: PointerEvent) {
-      if (!containerRef.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
+  const nextLocale = locales[(locales.indexOf(locale) + 1) % locales.length];
+  const nextLabel = dictionary.language.options[nextLocale];
 
   return (
-    <div ref={containerRef} className="relative z-40">
+    <div className="relative z-40">
       <button
         type="button"
-        aria-label={dictionary.language.label}
-        aria-expanded={open}
-        aria-haspopup="menu"
-        onClick={() => setOpen((value) => !value)}
+        aria-label={`${dictionary.language.label}: ${currentLabel}`}
+        title={nextLabel}
+        onClick={() => {
+          router.push(switchLocalePath(pathname, nextLocale));
+        }}
         className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 text-sm text-[var(--color-text)]"
       >
         <span className="max-w-40 truncate">{currentLabel}</span>
-        <ChevronDown className={`h-4 w-4 text-[var(--color-text-soft)] transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronRight className="h-4 w-4 text-[var(--color-text-soft)]" />
       </button>
-
-      {open ? (
-        <div
-          role="menu"
-          aria-label={dictionary.language.label}
-          className="absolute right-0 top-[calc(100%+8px)] z-50 min-w-64 rounded-2xl border border-[var(--color-border)] bg-white p-2 shadow-[var(--shadow-card)]"
-        >
-          <p className="px-3 py-2 text-xs font-medium uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
-            {dictionary.language.label}
-          </p>
-          {Object.entries(dictionary.language.options).map(([value, label]) => {
-            const isActive = value === locale;
-
-            return (
-              <button
-                key={value}
-                type="button"
-                role="menuitemradio"
-                aria-checked={isActive}
-                onClick={() => {
-                  setOpen(false);
-                  router.push(switchLocalePath(pathname, value as Locale));
-                }}
-                className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm ${
-                  isActive
-                    ? "bg-[var(--color-blue-soft)] font-medium text-[var(--color-blue)]"
-                    : "text-[var(--color-text)] hover:bg-[var(--color-surface-hover)]"
-                }`}
-              >
-                <span>{label}</span>
-                {isActive ? <span>•</span> : null}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
     </div>
   );
 }
